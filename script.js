@@ -71,7 +71,7 @@ const questions = [
     { question: "آیا شما به ایده‌ها و نظریه‌های پیچیده علاقه دارید؟", category: "Openness" }
 ];
 
-let currentQuestionIndex = 0; // نشان‌دهنده سوال فعلی
+let currentQuestionIndex = 0;
 let scores = {
     Extraversion: 0,
     Agreeableness: 0,
@@ -80,35 +80,67 @@ let scores = {
     Openness: 0
 };
 
-// نمایش سوالات به صورت داینامیک
+// شروع تست
+function startTest() {
+    document.getElementById('intro').classList.add('d-none');
+    document.getElementById('progressContainer').classList.remove('d-none');
+    document.getElementById('testForm').classList.remove('d-none');
+    loadQuestion();
+}
+
+// نمایش سوالات
 function loadQuestion() {
     const question = questions[currentQuestionIndex];
     const questionContainer = document.getElementById('questionContainer');
     questionContainer.innerHTML = `
         <div class="mb-3">
-            <label for="question" class="form-label">${question.question}</label>
-            <select class="form-select" id="questionAnswer" required>
-                <option value="1">کاملاً مخالفم</option>
-                <option value="2">مخالفم</option>
-                <option value="3">بی‌طرف</option>
-                <option value="4">موافقم</option>
-                <option value="5">کاملاً موافقم</option>
-            </select>
+            <label class="form-label">${question.question}</label>
+            <div>
+                <input type="radio" name="questionAnswer" value="1" id="answer1" required>
+                <label for="answer1">کاملاً مخالفم</label>
+            </div>
+            <div>
+                <input type="radio" name="questionAnswer" value="2" id="answer2">
+                <label for="answer2">مخالفم</label>
+            </div>
+            <div>
+                <input type="radio" name="questionAnswer" value="3" id="answer3">
+                <label for="answer3">بی‌طرف</label>
+            </div>
+            <div>
+                <input type="radio" name="questionAnswer" value="4" id="answer4">
+                <label for="answer4">موافقم</label>
+            </div>
+            <div>
+                <input type="radio" name="questionAnswer" value="5" id="answer5">
+                <label for="answer5">کاملاً موافقم</label>
+            </div>
         </div>
     `;
+
+    // افزودن event listener به رادیو باتن‌ها
+    const radioButtons = document.querySelectorAll('input[name="questionAnswer"]');
+    radioButtons.forEach(button => {
+        button.addEventListener('change', nextQuestion);
+    });
+
+    updateProgress();
 }
 
 // به سوال بعدی برو
 function nextQuestion() {
-    const answer = document.getElementById('questionAnswer').value;
-    if (!answer) {
-        alert('لطفاً پاسخ خود را انتخاب کنید.');
+    // اگر هیچ گزینه‌ای انتخاب نشده باشد، متوقف می‌شود
+    const selectedAnswer = document.querySelector('input[name="questionAnswer"]:checked');
+    if (!selectedAnswer) {
         return;
     }
 
+    // امتیازدهی به سوال
+    const answerValue = parseInt(selectedAnswer.value);
     const currentCategory = questions[currentQuestionIndex].category;
-    scores[currentCategory] += parseInt(answer);
+    scores[currentCategory] += answerValue;
 
+    // افزایش شمارنده سوالات
     currentQuestionIndex++;
 
     if (currentQuestionIndex < questions.length) {
@@ -116,6 +148,14 @@ function nextQuestion() {
     } else {
         showResult();
     }
+}
+
+// به‌روزرسانی نوار پیشرفت
+function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+    progressBar.style.width = progress + '%';
+    progressBar.setAttribute('aria-valuenow', progress);
 }
 
 // نمایش نتیجه
@@ -141,6 +181,3 @@ function showResult() {
     document.getElementById('result').classList.remove('d-none');
     document.getElementById('testForm').classList.add('d-none'); // مخفی کردن فرم سوالات
 }
-
-// بارگذاری سوال اول
-loadQuestion();
