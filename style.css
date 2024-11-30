@@ -1,0 +1,46 @@
+body {
+    font-family: 'Vazir', sans-serif;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+button {
+    font-size: 18px;
+    padding: 12px;
+}
+
+#result {
+    background-color: #f1f1f1;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    h3 {
+        font-size: 24px;
+    }
+
+    button {
+        font-size: 16px;
+        padding: 10px;
+    }
+}
