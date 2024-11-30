@@ -80,77 +80,42 @@ let scores = {
     Openness: 0
 };
 
-// شروع تست
+document.getElementById('startButton').addEventListener('click', startTest);
+
 function startTest() {
-    document.getElementById('intro').classList.add('d-none');
-    document.getElementById('progressContainer').classList.remove('d-none');
-    document.getElementById('testForm').classList.remove('d-none');
+    document.getElementById('startSection').classList.add('d-none');
+    document.getElementById('questionSection').classList.remove('question-container');
     loadQuestion();
 }
 
-// نمایش سوالات
 function loadQuestion() {
     const question = questions[currentQuestionIndex];
-    const questionContainer = document.getElementById('questionContainer');
-    questionContainer.innerHTML = `
-        <div class="mb-3">
-            <label class="form-label">${question.question}</label>
-            <div>
-                <input type="radio" name="questionAnswer" value="1" id="answer1" required>
-                <label for="answer1">کاملاً مخالفم</label>
-            </div>
-            <div>
-                <input type="radio" name="questionAnswer" value="2" id="answer2">
-                <label for="answer2">مخالفم</label>
-            </div>
-            <div>
-                <input type="radio" name="questionAnswer" value="3" id="answer3">
-                <label for="answer3">بی‌طرف</label>
-            </div>
-            <div>
-                <input type="radio" name="questionAnswer" value="4" id="answer4">
-                <label for="answer4">موافقم</label>
-            </div>
-            <div>
-                <input type="radio" name="questionAnswer" value="5" id="answer5">
-                <label for="answer5">کاملاً موافقم</label>
-            </div>
-        </div>
-    `;
+    document.getElementById('questionNumber').innerText = `سوال ${currentQuestionIndex + 1} از ${questions.length}`;
+    document.getElementById('questionText').innerText = question.text;
 
-    // افزودن event listener به رادیو باتن‌ها
-    const radioButtons = document.querySelectorAll('input[name="questionAnswer"]');
-    radioButtons.forEach(button => {
-        button.addEventListener('change', nextQuestion);
-    });
-
-    updateProgress();
+    for (let i = 0; i < 4; i++) {
+        document.getElementById(`answer${i + 1}`).nextElementSibling.innerText = question.answers[i];
+    }
 }
 
-// به سوال بعدی برو
 function nextQuestion() {
-    // اگر هیچ گزینه‌ای انتخاب نشده باشد، متوقف می‌شود
-    const selectedAnswer = document.querySelector('input[name="questionAnswer"]:checked');
-    if (!selectedAnswer) {
-        return;
-    }
+    const selectedAnswer = document.querySelector('input[name="answer"]:checked');
+    if (selectedAnswer) {
+        const answerValue = parseInt(selectedAnswer.value);
+        const category = questions[currentQuestionIndex].category;
+        scores[category] += answerValue;
 
-    // امتیازدهی به سوال
-    const answerValue = parseInt(selectedAnswer.value);
-    const currentCategory = questions[currentQuestionIndex].category;
-    scores[currentCategory] += answerValue;
+        currentQuestionIndex++;
 
-    // افزایش شمارنده سوالات
-    currentQuestionIndex++;
-
-    if (currentQuestionIndex < questions.length) {
-        loadQuestion();
-    } else {
-        showResult();
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+            updateProgress();
+        } else {
+            showResult();
+        }
     }
 }
 
-// به‌روزرسانی نوار پیشرفت
 function updateProgress() {
     const progressBar = document.getElementById('progressBar');
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
@@ -158,26 +123,36 @@ function updateProgress() {
     progressBar.setAttribute('aria-valuenow', progress);
 }
 
-// نمایش نتیجه
 function showResult() {
-    let resultText = "<h5>نتیجه تست شما:</h5><ul>";
+    let resultText = "<div class='row'>";
+    const descriptions = {
+        Extraversion: "ویژگی برونگرایی نشان می‌دهد که شما چقدر تمایل دارید در اجتماعات حضور پیدا کنید.",
+        Agreeableness: "ویژگی توافق‌پذیری به معنای تمایل شما برای هم‌دلی با دیگران است.",
+        Conscientiousness: "ویژگی وجدان‌کاری نشان‌دهنده مسئولیت‌پذیری و نظم شما است.",
+        Neuroticism: "ویژگی عصبی بودن به معنای تمایل شما به احساسات منفی مانند اضطراب است.",
+        Openness: "ویژگی باز بودن به تجربه‌ها نشان‌دهنده تمایل شما به پذیرش ایده‌های جدید است."
+    };
+
     for (let category in scores) {
         let score = scores[category];
-        let resultMessage = "";
+        let resultMessage = score <= 6 ? "شخصیت شما در این زمینه نسبتاً ضعیف است." : score <= 9 ? "شخصیت شما در این زمینه متوسط است." : "شخصیت شما در این زمینه بسیار قوی است.";
+        let resultColor = score <= 6 ? "text-danger" : score <= 9 ? "text-warning" : "text-success";
 
-        if (score <= 6) {
-            resultMessage = "شخصیت شما در این زمینه نسبتاً ضعیف است.";
-        } else if (score <= 9) {
-            resultMessage = "شخصیت شما در این زمینه متوسط است.";
-        } else {
-            resultMessage = "شخصیت شما در این زمینه بسیار قوی است.";
-        }
-
-        resultText += `<li><strong>${category}:</strong> ${resultMessage} (امتیاز: ${score})</li>`;
+        resultText += `
+            <div class="col-12 col-md-6 mb-3">
+                <div class="result-card p-4 rounded shadow-sm">
+                    <h5>${category}</h5>
+                    <p class="text-muted">${descriptions[category]}</p>
+                    <p class="${resultColor}">${resultMessage}</p>
+                    <p><strong>امتیاز شما: </strong>${score}</p>
+                </div>
+            </div>
+        `;
     }
-    resultText += "</ul>";
+
+    resultText += "</div>";
 
     document.getElementById('resultText').innerHTML = resultText;
-    document.getElementById('result').classList.remove('d-none');
-    document.getElementById('testForm').classList.add('d-none'); // مخفی کردن فرم سوالات
+    document.getElementById('resultSection').classList.remove('result-container');
+    document.getElementById('questionSection').classList.add('question-container');
 }
