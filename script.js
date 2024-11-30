@@ -71,13 +71,23 @@ const questions = [
     { question: "آیا شما به ایده‌ها و نظریه‌های پیچیده علاقه دارید؟", category: "Openness" }
 ];
 
+let currentQuestionIndex = 0; // نشان‌دهنده سوال فعلی
+let scores = {
+    Extraversion: 0,
+    Agreeableness: 0,
+    Conscientiousness: 0,
+    Neuroticism: 0,
+    Openness: 0
+};
+
 // نمایش سوالات به صورت داینامیک
-const questionContainer = document.getElementById('questions');
-questions.forEach((q, index) => {
-    const questionHTML = `
+function loadQuestion() {
+    const question = questions[currentQuestionIndex];
+    const questionContainer = document.getElementById('questionContainer');
+    questionContainer.innerHTML = `
         <div class="mb-3">
-            <label for="question${index}" class="form-label">${q.question}</label>
-            <select class="form-select" id="question${index}" required>
+            <label for="question" class="form-label">${question.question}</label>
+            <select class="form-select" id="questionAnswer" required>
                 <option value="1">کاملاً مخالفم</option>
                 <option value="2">مخالفم</option>
                 <option value="3">بی‌طرف</option>
@@ -86,27 +96,30 @@ questions.forEach((q, index) => {
             </select>
         </div>
     `;
-    questionContainer.innerHTML += questionHTML;
-});
+}
 
-// محاسبه نتیجه تست و نمایش آن
-const form = document.getElementById('testForm');
-form.addEventListener('submit', function (e) {
-    e.preventDefault();
+// به سوال بعدی برو
+function nextQuestion() {
+    const answer = document.getElementById('questionAnswer').value;
+    if (!answer) {
+        alert('لطفاً پاسخ خود را انتخاب کنید.');
+        return;
+    }
 
-    let scores = {
-        Extraversion: 0,
-        Agreeableness: 0,
-        Conscientiousness: 0,
-        Neuroticism: 0,
-        Openness: 0
-    };
+    const currentCategory = questions[currentQuestionIndex].category;
+    scores[currentCategory] += parseInt(answer);
 
-    questions.forEach((q, index) => {
-        const answer = parseInt(document.getElementById(`question${index}`).value);
-        scores[q.category] += answer;
-    });
+    currentQuestionIndex++;
 
+    if (currentQuestionIndex < questions.length) {
+        loadQuestion();
+    } else {
+        showResult();
+    }
+}
+
+// نمایش نتیجه
+function showResult() {
     let resultText = "<h5>نتیجه تست شما:</h5><ul>";
     for (let category in scores) {
         let score = scores[category];
@@ -126,4 +139,8 @@ form.addEventListener('submit', function (e) {
 
     document.getElementById('resultText').innerHTML = resultText;
     document.getElementById('result').classList.remove('d-none');
-});
+    document.getElementById('testForm').classList.add('d-none'); // مخفی کردن فرم سوالات
+}
+
+// بارگذاری سوال اول
+loadQuestion();

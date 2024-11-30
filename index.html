@@ -15,10 +15,10 @@
                 <div class="card p-4">
                     <h3 class="text-center mb-4">تست شخصیت‌شناسی نئو</h3>
                     <form id="testForm">
-                        <div id="questions">
+                        <div id="questionContainer">
                             <!-- سوالات به صورت داینامیک اضافه می‌شوند -->
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">نتیجه را نمایش بده</button>
+                        <button type="button" id="nextButton" class="btn btn-primary w-100 mt-3" onclick="nextQuestion()">سوال بعدی</button>
                     </form>
                     <div id="result" class="mt-4 d-none">
                         <h4 class="text-center">نتیجه تست:</h4>
