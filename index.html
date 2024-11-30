@@ -1,64 +1,220 @@
 <!DOCTYPE html>
 <html lang="fa">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تست شخصیت‌شناسی نئو</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@5.15.4/css/all.css" rel="stylesheet">
+    <title>آزمون شخصیت نئو</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazir&display=swap" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazir', sans-serif;
+            direction: rtl;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        .question-container {
+            display: none;
+        }
+        .question-container.active {
+            display: block;
+        }
+        .progress-bar {
+            height: 20px;
+        }
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+        .radio-btn {
+            margin: 10px 0;
+        }
+        .progress {
+            margin-bottom: 20px;
+        }
+        button {
+            margin-top: 20px;
+        }
+        .result-text {
+            font-size: 16px;
+        }
+    </style>
 </head>
-
 <body>
     <div class="container">
-        <!-- صفحه توضیحات قبل از شروع -->
-        <div id="startSection" class="text-center mb-5">
-            <h3>تست شخصیت‌شناسی نئو</h3>
-            <p>این تست 60 سوال دارد که برای ارزیابی پنج ویژگی شخصیت شما طراحی شده است. لطفاً با دقت به سوالات پاسخ دهید.</p>
-            <button id="startButton" class="btn btn-primary">شروع تست</button>
+        <h2 class="text-center">آزمون شخصیت نئو</h2>
+        <p class="text-center">لطفاً به سوالات پاسخ دهید و در نهایت نتیجه آزمون خود را مشاهده کنید.</p>
+
+        <!-- بخش توضیحات قبل از شروع آزمون -->
+        <div id="intro">
+            <h5>توضیحات:</h5>
+            <p>این آزمون به بررسی پنج ویژگی اصلی شخصیت انسان‌ها می‌پردازد:</p>
+            <ul>
+                <li><strong>برونگرایی</strong></li>
+                <li><strong>موافق بودن</strong></li>
+                <li><strong>با وجدان بودن</strong></li>
+                <li><strong>روان رنجوری یا عصبیت</strong></li>
+                <li><strong>گشودگی به تجربه‌ها</strong></li>
+            </ul>
+            <button id="startTest" class="btn btn-primary btn-block">شروع آزمون</button>
         </div>
 
         <!-- بخش سوالات -->
-        <div id="questionSection" class="question-container">
-            <div id="questionNumber" class="mb-4"></div>
-            <div id="questionText" class="mb-4"></div>
+        <div id="questions" class="question-container"></div>
 
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="answer" id="answer1" value="1">
-                <label class="form-check-label" for="answer1">جواب 1</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="answer" id="answer2" value="2">
-                <label class="form-check-label" for="answer2">جواب 2</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="answer" id="answer3" value="3">
-                <label class="form-check-label" for="answer3">جواب 3</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="answer" id="answer4" value="4">
-                <label class="form-check-label" for="answer4">جواب 4</label>
-            </div>
-
-            <div class="mt-4">
-                <div class="progress">
-                    <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-            </div>
+        <!-- بخش پروگرسبار -->
+        <div class="progress">
+            <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
+        <p id="progressText" class="text-right">پیشرفت: 0%</p>
 
-        <!-- نمایش نتیجه -->
-        <div id="resultSection" class="result-container">
-            <h4 class="text-center mb-4">نتیجه تست شما</h4>
-            <div id="resultText"></div>
+        <!-- بخش نتایج -->
+        <div id="results" class="results">
+            <h4>نتیجه آزمون شما:</h4>
+            <p id="resultText"></p>
+            <ul id="resultDetails"></ul>
+            <h5>تفسیر سبک شما:</h5>
+            <p id="styleInterpretation"></p>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="questions.js"></script>
-    <script src="script.js"></script>
-</body>
+    <script>
+        $(document).ready(function() {
+            let currentQuestionIndex = 0;
+            let answers = {
+                Extraversion: 0,
+                Agreeableness: 0,
+                Conscientiousness: 0,
+                Neuroticism: 0,
+                Openness: 0
+            };
 
+            // نمایش سوالات و گزینه‌ها
+            function showQuestion(index) {
+                let question = questions[index];
+                $('#questions').html(`
+                    <div class="question-container active">
+                        <h4 style="text-align: right;">${question.question}</h4>
+                        <div class="radio-btn" style="text-align: right;">
+                            <label><input type="radio" name="answer" value="1"> کاملاً موافقم</label><br>
+                            <label><input type="radio" name="answer" value="2"> موافقم</label><br>
+                            <label><input type="radio" name="answer" value="3"> نظری ندارم</label><br>
+                            <label><input type="radio" name="answer" value="4"> مخالفم</label><br>
+                            <label><input type="radio" name="answer" value="5"> کاملاً مخالفم</label><br>
+                        </div>
+                    </div>
+                `);
+            }
+
+            // ذخیره پاسخ
+            function storeAnswer(value, category) {
+                answers[category] += parseInt(value);
+            }
+
+            // پیشرفت در نوار وضعیت
+            function updateProgress() {
+                const progress = (currentQuestionIndex / questions.length) * 100;
+                $('#progressBar').css('width', progress + '%').attr('aria-valuenow', progress);
+                $('#progressText').text(`پیشرفت: ${Math.round(progress)}%`);
+            }
+
+            // شروع آزمون
+            $('#startTest').click(function() {
+                $('#intro').hide();
+                $('#questions').show();
+                showQuestion(currentQuestionIndex);
+                updateProgress();
+            });
+
+            // حرکت به سوال بعدی و ذخیره پاسخ
+            $(document).on('change', 'input[name="answer"]', function() {
+                let selectedValue = $('input[name="answer"]:checked').val();
+                if (selectedValue) {
+                    let question = questions[currentQuestionIndex];
+                    storeAnswer(selectedValue, question.category);
+                    currentQuestionIndex++;
+                    if (currentQuestionIndex < questions.length) {
+                        showQuestion(currentQuestionIndex);
+                        updateProgress();
+                    } else {
+                        showResults();
+                    }
+                }
+            });
+
+            // نمایش نتیجه
+            function showResults() {
+                let resultText = `<h5>نتیجه شما بر اساس پنج ویژگی اصلی شخصیت:</h5>`;
+                let resultDetails = '';
+                let styleInterpretation = '';
+
+                const categories = ['Extraversion', 'Agreeableness', 'Conscientiousness', 'Neuroticism', 'Openness'];
+                categories.forEach(function(category) {
+                    let percentage = calculatePercentage(answers[category], category).toFixed(1);
+                    resultText += `<p><strong>${category}:</strong> ${percentage}%</p>`;
+                    resultDetails += `
+                        <li style="text-align: right;">
+                            <strong>${category}:</strong> ${percentage}%
+                            <br>تفسیر: ${getInterpretation(category, percentage)}
+                        </li>
+                    `;
+                });
+
+                // تفسیر سبک غالب
+                styleInterpretation = getStyleInterpretation(answers);
+
+                $('#resultText').html(resultText);
+                $('#resultDetails').html(resultDetails);
+                $('#styleInterpretation').html(styleInterpretation);
+                $('#results').show();
+                $('#questions').hide();
+            }
+
+            // محاسبه درصد برای هر ویژگی
+            function calculatePercentage(totalScore, category) {
+                const maxScore = questions.filter(q => q.category === category).length * 5;
+                return (totalScore / maxScore) * 100;
+            }
+
+            // تفسیر هر ویژگی
+            function getInterpretation(category, percentage) {
+                switch (category) {
+                    case 'Extraversion':
+                        if (percentage < 40) return 'شما فردی درونگرا هستید.';
+                        if (percentage >= 40 && percentage <= 60) return 'شما میانگینی از برونگرایی دارید.';
+                        return 'شما فردی برونگرا هستید.';
+                    case 'Neuroticism':
+                        if (percentage < 40) return 'شما از سلامت روانی مناسبی برخوردارید.';
+                        if (percentage >= 40 && percentage <= 60) return 'شما در معرض احساسات منفی هستید.';
+                        return 'شما ممکن است مشکلات روانی مانند اضطراب را تجربه کنید.';
+                    case 'Openness':
+                        if (percentage < 40) return 'شما به چارچوب‌ها و روتین‌های مشخص علاقه دارید.';
+                        if (percentage >= 40 && percentage <= 60) return 'شما گاهی اوقات به تجربه‌های جدید تمایل دارید.';
+                        return 'شما فردی باز به تجربیات جدید هستید.';
+                    case 'Agreeableness':
+                        if (percentage < 40) return 'شما به منافع خود اهمیت می‌دهید.';
+                        if (percentage >= 40 && percentage <= 60) return 'شما فردی سازگار و دلسوز هستید.';
+                        return 'شما فردی بسیار دلسوز و موافق با دیگران هستید.';
+                    case 'Conscientiousness':
+                        if (percentage < 40) return 'شما ممکن است از نظم و ترتیب کمتری پیروی کنید.';
+                        if (percentage >= 40 && percentage <= 60) return 'شما به طور متوسط از قوانین پیروی می‌کنید.';
+                        return 'شما فردی با وجدان و پیگیر قوانین هستید.';
+                    default:
+                        return '';
+                }
+            }
+
+            // تفسیر سبک غالب
+            function getStyleInterpretation(answers) {
+                let highest = Object.keys(answers).reduce((a, b) => answers[a] > answers[b] ? a : b);
+                return `سبک غالب شما: ${highest} با امتیاز ${answers[highest]}`;
+            }
+        });
+    </script>
+</body>
 </html>
